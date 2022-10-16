@@ -3,65 +3,82 @@ from pico2d import *
 WEDTH = 1920//2
 HEIGHT = 690
 
-def move_bird():
-    global dir_x, dir_y, t
+
+class Bird:         # 주인공 객체
+    def __init__(self):
+        self.frame = 0
+        self.bottom = 0                 # 상하 움직임 시 변화, 현재 적용 X
+        self.x, self.y = WEDTH//2, HEIGHT//2
+        self.dir_x, self.dir_y = 0, 0
+        self.image = load_image('bird.png')
+
+    def update(self):
+        self.frame = (self.frame + 1) % 7
+        self.x += self.dir_x * 5
+        self.y += self.dir_y * 5
+
+    def draw(self):
+        self.image.clip_draw(self.frame * 207, self.bottom * 203, 207, 203, self.x, self.y, 80, 80)
+
+
+class Sky:      # 배경
+    def __init__(self):
+        self.frame = 0
+        self.image = load_image('sky.png')
+
+    def update(self):
+        self.frame = (self.frame + 1) % 96
+
+    def draw(self):
+        self.image.clip_draw(self.frame * 10, 0, WEDTH, HEIGHT, WEDTH//2, HEIGHT//2)
+
+
+class Enemy:
+    pass
+
+
+def handle_event():
     global running
     events = get_events()
-
     for event in events:
         if event.type == SDL_QUIT:
             running = False
         elif event.type == SDL_KEYDOWN:
-            if event.key == SDLK_UP:
-                dir_y += 1
-                t = 1
-            elif event.key == SDLK_DOWN:
-                dir_y -= 1
-                t = 2
+            if event.key == SDLK_LEFT:
+                bird.dir_x -= 1
             elif event.key == SDLK_RIGHT:
-                dir_x += 1
-            elif event.key == SDLK_LEFT:
-                dir_x -= 1
+                bird.dir_x += 1
+            elif event.key == SDLK_UP:
+                bird.dir_y += 1
+            elif event.key == SDLK_DOWN:
+                bird.dir_y -= 1
         elif event.type == SDL_KEYUP:
-            if event.key == SDLK_UP:
-                dir_y -= 1
-                t = 0
-            elif event.key == SDLK_DOWN:
-                dir_y += 1
-                t = 0
+            if event.key == SDLK_LEFT:
+                bird.dir_x += 1
             elif event.key == SDLK_RIGHT:
-                dir_x -= 1
-            elif event.key == SDLK_LEFT:
-                dir_x += 1
+                bird.dir_x -= 1
+            elif event.key == SDLK_UP:
+                bird.dir_y -= 1
+            elif event.key == SDLK_DOWN:
+                bird.dir_y += 1
 
 
-dir_y, dir_x = 0, 0
-x, y = WEDTH//2, HEIGHT//2
+open_canvas()
 
-frame_bird = 0
-frame_sky = 0
-
-t = 0
+bird = Bird()
+sky = Sky()
 running = True
 
-open_canvas(WEDTH, HEIGHT)
-
-sky = load_image('sky.png')
-bird = load_image('bird.png')
-enemy01 = load_image('enemy_bird_01.png')
-
 while running:
+    handle_event()
+
+    sky.update()
+    bird.update()
+
     clear_canvas()
 
-    sky.clip_draw(frame_sky * 10, 0, WEDTH, HEIGHT, WEDTH//2, HEIGHT//2)
-    bird.clip_draw(frame_bird * 207, t * 203, 207, 203, x, y, 80, 80)
-
-    move_bird()
-
-    frame_bird = (frame_bird + 1) % 7
-    frame_sky = (frame_sky + 1) % 96
-    y = y + dir_y * 5
-    x = x + dir_x * 5
+    sky.draw()
+    bird.draw()
 
     update_canvas()
     delay(0.04)
